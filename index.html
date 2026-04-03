@@ -1,9 +1,933 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Test</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Displacement Risk · 2020–2030</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #0a0a0a;
+  --surface: #111111;
+  --border:  #222222;
+  --text:    #e8e0d0;
+  --dim:     #666;
+  --font-h:  'Barlow Condensed', sans-serif;
+  --font-b:  'Barlow', sans-serif;
+  --font-m:  'JetBrains Mono', monospace;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-b);
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  padding: 36px 48px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.header-left {}
+.header-kicker {
+  font-family: var(--font-m);
+  font-size: 11px; letter-spacing: .15em;
+  text-transform: uppercase; color: var(--dim);
+  margin-bottom: 10px;
+}
+.header-title {
+  font-family: var(--font-h);
+  font-size: clamp(36px, 5vw, 62px);
+  font-weight: 800; line-height: .95;
+  letter-spacing: -.01em; color: #fff;
+  margin-bottom: 14px;
+}
+.header-title em { font-style: normal; color: #ff4422; }
+.header-desc {
+  font-size: 15px; color: #888;
+  max-width: 580px; line-height: 1.6; font-weight: 300;
+}
+.header-stats {
+  display: flex; gap: 32px;
+  align-items: flex-start; flex-shrink: 0;
+}
+.hstat { text-align: right; }
+.hstat-num {
+  font-family: var(--font-h);
+  font-size: 38px; font-weight: 800;
+  color: #fff; line-height: 1; display: block;
+}
+.hstat-label {
+  font-family: var(--font-m);
+  font-size: 10px; color: var(--dim);
+  text-transform: uppercase; letter-spacing: .1em;
+}
+
+/* ── CONTROLS ── */
+.controls {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 48px;
+  display: flex;
+  align-items: center;
+  gap: 24px; flex-wrap: wrap;
+}
+.year-badge {
+  font-family: var(--font-h);
+  font-size: 44px; font-weight: 800;
+  color: #fff; letter-spacing: -.02em;
+  min-width: 96px; line-height: 1; flex-shrink: 0;
+}
+.year-badge span {
+  font-size: 14px; color: var(--dim);
+  font-weight: 400; letter-spacing: 0;
+  display: block; margin-top: -2px;
+}
+.play-btn {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: #ff4422; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: transform .15s, background .15s;
+  box-shadow: 0 0 24px rgba(255,68,34,.4);
+}
+.play-btn:hover { transform: scale(1.1); background: #ff5533; }
+.play-btn svg { pointer-events: none; }
+.reset-btn {
+  font-family: var(--font-m); font-size: 11px;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: 8px 14px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--dim); cursor: pointer; border-radius: 3px;
+  transition: all .15s;
+}
+.reset-btn:hover { border-color: #555; color: var(--text); }
+.timeline-wrap {
+  flex: 1; min-width: 200px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.timeline-labels {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-m); font-size: 10px; color: var(--dim);
+}
+.timeline-track {
+  position: relative; height: 6px;
+  background: #1e1e1e; border-radius: 3px; cursor: pointer;
+}
+.timeline-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, #1a6b3a, #b8860b, #cc2200);
+  border-radius: 3px; pointer-events: none;
+}
+.timeline-thumb {
+  position: absolute; top: 50%;
+  width: 16px; height: 16px;
+  background: #fff; border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 10px rgba(0,0,0,.9);
+}
+input#yearSlider {
+  position: absolute; inset: -6px 0;
+  width: 100%; opacity: 0; cursor: pointer; height: 18px;
+}
+.ctrl-label {
+  font-family: var(--font-m); font-size: 10px;
+  color: var(--dim); text-transform: uppercase; letter-spacing: .1em;
+  display: block; margin-bottom: 5px;
+}
+.tab-group { display: flex; flex-direction: column; }
+.tabs { display: flex; gap: 3px; }
+.tab {
+  font-family: var(--font-m); font-size: 11px;
+  padding: 5px 10px; background: transparent;
+  border: 1px solid var(--border); color: var(--dim);
+  cursor: pointer; border-radius: 3px; transition: all .12s;
+}
+.tab.on { background: rgba(255,68,34,.15); border-color: #ff4422; color: #ff7755; }
+.tab:hover:not(.on) { border-color: #555; color: var(--text); }
+.scene-tab.on { background: rgba(184,134,11,.12); border-color: #b8860b; color: #e6a820; }
+
+/* ── LEGEND ── */
+.legend-strip {
+  background: #0e0e0e;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 48px;
+  display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+}
+.legend-kicker { font-family: var(--font-m); font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; }
+.legend-item { display: flex; align-items: center; gap: 7px; font-family: var(--font-m); font-size: 11px; color: var(--dim); }
+.legend-swatch { width: 13px; height: 13px; border-radius: 2px; }
+
+/* ── TICKER ── */
+.ticker {
+  background: #ff4422; padding: 6px 48px;
+  font-family: var(--font-m); font-size: 11px;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: #fff; overflow: hidden; white-space: nowrap;
+}
+.ticker-inner { display: inline-block; animation: tick 32s linear infinite; }
+@keyframes tick { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+/* ── MAIN LAYOUT ── */
+.main {
+  display: flex;
+  gap: 28px;
+  padding: 28px 48px 36px;
+  align-items: flex-start;
+}
+
+/* ── SECTORS ── */
+.sectors { flex: 1; display: flex; flex-direction: column; gap: 26px; }
+.sector-block {}
+.sector-title {
+  font-family: var(--font-h); font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .15em; color: var(--dim);
+  margin-bottom: 9px; padding-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.sector-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── JOB GRID ── */
+.jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 5px;
+}
+.job-block {
+  border-radius: 4px;
+  padding: 10px 11px 9px;
+  cursor: default; position: relative;
+  transition: background-color .35s ease, transform .12s;
+  overflow: hidden;
+  /* shimmer overlay */
+}
+.job-block:hover {
+  transform: translateY(-2px) scale(1.025);
+  z-index: 10;
+  box-shadow: 0 8px 28px rgba(0,0,0,.7);
+}
+.job-block::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.08) 0%, transparent 55%);
+  pointer-events: none;
+}
+.job-badge {
+  position: absolute; top: 7px; right: 8px;
+  font-family: var(--font-m); font-size: 8px;
+  color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .05em;
+}
+.job-name {
+  font-family: var(--font-h); font-size: 13px; font-weight: 700;
+  line-height: 1.15; color: rgba(255,255,255,.9);
+  margin-bottom: 7px;
+}
+.job-score {
+  font-family: var(--font-h); font-size: 28px; font-weight: 800;
+  color: #fff; line-height: 1;
+}
+.job-score-label {
+  font-family: var(--font-m); font-size: 9px;
+  color: rgba(255,255,255,.45);
+  text-transform: uppercase; letter-spacing: .1em;
+  display: block; margin-top: 1px;
+}
+.job-bar { margin-top: 8px; height: 3px; background: rgba(0,0,0,.35); border-radius: 2px; overflow: hidden; }
+.job-bar-fill { height: 100%; background: rgba(255,255,255,.4); border-radius: 2px; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 224px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 14px;
+  position: sticky; top: 20px;
+}
+.panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; padding: 16px;
+}
+.panel-title {
+  font-family: var(--font-h); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .15em;
+  color: var(--dim); margin-bottom: 13px;
+}
+.snap-stat {
+  padding: 9px 0; border-bottom: 1px solid var(--border);
+}
+.snap-stat:last-child { border-bottom: none; padding-bottom: 0; }
+.snap-val {
+  font-family: var(--font-h); font-size: 30px; font-weight: 800;
+  color: #fff; line-height: 1; display: block;
+}
+.snap-key {
+  font-family: var(--font-m); font-size: 10px;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--dim); margin-top: 1px;
+}
+.mover-list { display: flex; flex-direction: column; gap: 7px; }
+.mover { display: flex; align-items: center; gap: 7px; }
+.mover-rank { font-family: var(--font-m); font-size: 11px; color: var(--dim); min-width: 16px; }
+.mover-name { flex: 1; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mover-score { font-family: var(--font-h); font-size: 17px; font-weight: 700; min-width: 28px; text-align: right; }
+.narrative-year {
+  font-family: var(--font-h); font-size: 22px; font-weight: 800;
+  color: #ff4422; display: block; margin-bottom: 7px;
+}
+.narrative-text { font-size: 12px; color: #777; line-height: 1.65; font-style: italic; }
+
+/* ── TOOLTIP ── */
+#tooltip {
+  position: fixed; z-index: 9999;
+  background: #111; border: 1px solid #2a2a2a;
+  border-radius: 4px; padding: 13px 16px;
+  pointer-events: none; opacity: 0; transition: opacity .12s;
+  min-width: 220px; box-shadow: 0 14px 44px rgba(0,0,0,.85);
+}
+#tooltip.show { opacity: 1; }
+.tt-name { font-family: var(--font-h); font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+.tt-row {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-m); font-size: 11px;
+  padding: 3px 0; border-bottom: 1px solid #1c1c1c; gap: 12px;
+}
+.tt-row:last-of-type { border-bottom: none; }
+.tt-k { color: var(--dim); }
+.tt-v { color: #fff; font-weight: 500; }
+.tt-bar { margin-top: 10px; height: 5px; background: #1e1e1e; border-radius: 3px; overflow: hidden; }
+.tt-bar-fill { height: 100%; border-radius: 3px; transition: width .3s; }
+
+/* ── FOOTER ── */
+footer {
+  padding: 28px 48px 52px;
+  border-top: 1px solid var(--border);
+}
+.footer-heading {
+  font-family: var(--font-h); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .15em;
+  color: var(--dim); margin-bottom: 16px;
+}
+.sources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(258px, 1fr));
+  gap: 10px; margin-bottom: 18px;
+}
+.source {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; padding: 13px 15px;
+}
+.source-name { font-family: var(--font-h); font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+.source-text { font-size: 12px; color: #666; line-height: 1.5; margin-bottom: 8px; }
+.source-link { font-family: var(--font-m); font-size: 11px; color: #ff6644; text-decoration: none; word-break: break-all; }
+.source-link:hover { text-decoration: underline; }
+.method {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; padding: 15px 17px;
+  font-size: 12px; color: #666; line-height: 1.7;
+}
+.method strong { color: #999; }
+.method code { background: #1a1a1a; padding: 1px 5px; border-radius: 2px; font-family: var(--font-m); font-size: 11px; color: #e6a820; }
+
+@media (max-width: 960px) {
+  .main { flex-direction: column; padding: 20px; }
+  .sidebar { width: 100%; position: static; flex-direction: row; flex-wrap: wrap; }
+  .panel { flex: 1; min-width: 160px; }
+  .header { padding: 24px 20px; flex-direction: column; }
+  .controls, .legend-strip, footer { padding-left: 20px; padding-right: 20px; }
+}
+</style>
 </head>
 <body>
-    <h1>GitHub Pages Working</h1>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <div class="header-kicker">AI Displacement Risk Monitor · Powered by O*NET + AIOE + BLS Data</div>
+    <h1 class="header-title">80+ Jobs<br><em>Under Threat</em></h1>
+    <p class="header-desc">Watch AI transform occupational risk in real time. Each block is a real job category. Colors shift from deep green → amber → red as AI adoption erodes human advantage. Data sourced from Felten–Raj–Seamans AIOE index, O*NET 28.0, and BLS 2022–32 projections.</p>
+  </div>
+  <div class="header-stats">
+    <div class="hstat">
+      <span class="hstat-num" id="hstatAvg">—</span>
+      <span class="hstat-label">Avg Risk %</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-num" id="hstatCrit">—</span>
+      <span class="hstat-label">Critical Jobs</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-num" id="hstatM">—</span>
+      <span class="hstat-label">M Workers at Risk</span>
+    </div>
+  </div>
+</header>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="year-badge">
+    <span id="yearNum">2020</span>
+    <span id="yearPhase">Early Stage</span>
+  </div>
+
+  <button class="play-btn" id="playBtn" title="Space = play/pause">
+    <svg id="playIcon" width="20" height="20" viewBox="0 0 20 20" fill="white">
+      <polygon points="6,3 17,10 6,17"/>
+    </svg>
+  </button>
+
+  <button class="reset-btn" id="resetBtn">↺ Reset</button>
+
+  <div class="timeline-wrap">
+    <div class="timeline-labels">
+      <span>2020</span><span>2022</span><span>2024</span><span>2026</span><span>2028</span><span>2030</span>
+    </div>
+    <div class="timeline-track">
+      <div class="timeline-fill" id="tfill"></div>
+      <div class="timeline-thumb" id="tthumb"></div>
+      <input type="range" id="yearSlider" min="0" max="1000" value="0">
+    </div>
+  </div>
+
+  <div class="tab-group">
+    <span class="ctrl-label">Speed</span>
+    <div class="tabs" id="speedTabs">
+      <button class="tab" data-s="0.5">0.5×</button>
+      <button class="tab on" data-s="1">1×</button>
+      <button class="tab" data-s="2">2×</button>
+      <button class="tab" data-s="4">4×</button>
+    </div>
+  </div>
+
+  <div class="tab-group">
+    <span class="ctrl-label">Scenario</span>
+    <div class="tabs" id="sceneTabs">
+      <button class="tab scene-tab" data-sc="conservative">Conservative</button>
+      <button class="tab scene-tab on" data-sc="base">Base</button>
+      <button class="tab scene-tab" data-sc="aggressive">Aggressive</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend-strip">
+  <span class="legend-kicker">AI Risk Level:</span>
+  <div class="legend-item"><div class="legend-swatch" style="background:#1a5c30"></div>Early &lt;20%</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#2d7a35"></div>Emerging 20–40%</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#8a6800"></div>Moderate 40–60%</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#b83c00"></div>High 60–75%</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#bb1100"></div>Critical &gt;75%</div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <span class="ticker-inner">
+    ▶ AI automates ~40% of work tasks by 2030 — Goldman Sachs Research &nbsp;&nbsp;·&nbsp;&nbsp;
+    ▶ 300 million full-time jobs exposed globally to generative AI &nbsp;&nbsp;·&nbsp;&nbsp;
+    ▶ Office clerks, telemarketers, and legal document review face sharpest displacement curves &nbsp;&nbsp;·&nbsp;&nbsp;
+    ▶ Construction, physical therapy, firefighting remain most AI-resilient through 2030 &nbsp;&nbsp;·&nbsp;&nbsp;
+    ▶ Software developers: augmented, not replaced — productivity gains of 40–70% projected &nbsp;&nbsp;·&nbsp;&nbsp;
+    ▶ AI automates ~40% of work tasks by 2030 — Goldman Sachs Research &nbsp;&nbsp;·&nbsp;&nbsp;
+    ▶ 300 million full-time jobs exposed globally to generative AI &nbsp;&nbsp;·&nbsp;&nbsp;
+    ▶ Office clerks, telemarketers, and legal document review face sharpest displacement curves &nbsp;&nbsp;·&nbsp;&nbsp;
+    ▶ Construction, physical therapy, firefighting remain most AI-resilient through 2030 &nbsp;&nbsp;·&nbsp;&nbsp;
+    ▶ Software developers: augmented, not replaced — productivity gains of 40–70% projected
+  </span>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="sectors" id="sectors"></div>
+
+  <div class="sidebar">
+    <div class="panel">
+      <div class="panel-title">Live Snapshot</div>
+      <div class="snap-stat">
+        <span class="snap-val" id="sAvg">—</span>
+        <div class="snap-key">Avg Impact Score</div>
+      </div>
+      <div class="snap-stat">
+        <span class="snap-val" id="sCrit" style="color:#ff3311">—</span>
+        <div class="snap-key">Critical &gt;75%</div>
+      </div>
+      <div class="snap-stat">
+        <span class="snap-val" id="sHigh" style="color:#cc4400">—</span>
+        <div class="snap-key">High Risk &gt;60%</div>
+      </div>
+      <div class="snap-stat">
+        <span class="snap-val" id="sSafe" style="color:#2d8f4e">—</span>
+        <div class="snap-key">Safe &lt;20%</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Most at Risk</div>
+      <div class="mover-list" id="moverList"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Year in Context</div>
+      <span class="narrative-year" id="navYear">2020</span>
+      <p class="narrative-text" id="navText">AI is emerging. Early adoption in narrow tasks. Most workers remain unaffected.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLTIP -->
+<div id="tooltip">
+  <div class="tt-name" id="ttName"></div>
+  <div class="tt-row"><span class="tt-k">Sector</span><span class="tt-v" id="ttSector"></span></div>
+  <div class="tt-row"><span class="tt-k">Impact Score</span><span class="tt-v" id="ttScore"></span></div>
+  <div class="tt-row"><span class="tt-k">AIOE Baseline</span><span class="tt-v" id="ttAioe"></span></div>
+  <div class="tt-row"><span class="tt-k">Employment</span><span class="tt-v" id="ttEmp"></span></div>
+  <div class="tt-row"><span class="tt-k">BLS 2022–32 Growth</span><span class="tt-v" id="ttGrowth"></span></div>
+  <div class="tt-bar"><div class="tt-bar-fill" id="ttFill"></div></div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-heading">Data Sources &amp; Citations</div>
+  <div class="sources">
+    <div class="source">
+      <div class="source-name">O*NET Production Database 28.0</div>
+      <div class="source-text">Occupation backbone. SOC-coded job titles, skills, task and ability profiles used to anchor exposure scores across 1,100+ occupations, aggregated to 80 representative groups.</div>
+      <a class="source-link" href="https://www.onetcenter.org/database.html" target="_blank">onetcenter.org/database.html</a>
+    </div>
+    <div class="source">
+      <div class="source-name">Felten, Raj &amp; Seamans AIOE (2021)</div>
+      <div class="source-text">AI Occupational Exposure index. Maps O*NET ability ratings against AI Progress Measurement (AIPM) benchmark scores. Published in AEA Papers &amp; Proceedings, May 2021.</div>
+      <a class="source-link" href="https://www.aeaweb.org/articles?id=10.1257/pandp.20211018" target="_blank">aeaweb.org · 10.1257/pandp.20211018</a>
+    </div>
+    <div class="source">
+      <div class="source-name">BLS Employment Projections 2022–32</div>
+      <div class="source-text">Official 10-year projections: employment levels, percent change, and job openings by occupation. Used to weight risk by workforce size and display labor-force exposure.</div>
+      <a class="source-link" href="https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm" target="_blank">bls.gov/emp/</a>
+    </div>
+    <div class="source">
+      <div class="source-name">Goldman Sachs Research (2023)</div>
+      <div class="source-text">Briggs &amp; Kodnani: "The Potentially Large Effects of AI on Economic Growth." Calibrates S-curve adoption scenario parameters; estimates 300M jobs globally exposed to generative AI.</div>
+      <a class="source-link" href="https://www.goldmansachs.com/intelligence/pages/generative-ai-could-raise-global-gdp-by-7-percent.html" target="_blank">goldmansachs.com/intelligence</a>
+    </div>
+  </div>
+  <div class="method">
+    <strong>Impact Score Formula:</strong>
+    <code>score(job, t) = aioe_baseline × L / (1 + exp(−k × (t − t₀))) × 100</code><br>
+    Scenarios — <strong>Conservative:</strong> L=0.55, k=0.35, t₀=7.0 &nbsp;|&nbsp;
+    <strong>Base:</strong> L=0.85, k=0.55, t₀=5.5 &nbsp;|&nbsp;
+    <strong>Aggressive:</strong> L=1.0, k=0.80, t₀=3.5.
+    t ∈ [0,10] = years since 2020. AIOE baselines from Felten–Raj–Seamans (2021), employment-weighted by BLS major-group crosswalk.
+    These are model-based scenarios, not forecasts.
+  </div>
+</footer>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   DATA — 80 jobs across 10 sectors
+   aioe: Felten-Raj-Seamans baseline (0–1 scale)
+   employment: BLS 2022 base (thousands)
+   blsGrowth: BLS 2022-32 projected % change
+════════════════════════════════════════════════════════ */
+const SECTORS = [
+  {
+    name: "Office & Administrative",
+    accent: "#7a2a00",
+    jobs: [
+      { name:"Data Entry Clerks",         aioe:0.74, employment:140,  blsGrowth:-26.0 },
+      { name:"Payroll Clerks",            aioe:0.71, employment:160,  blsGrowth:-10.4 },
+      { name:"Bookkeepers",               aioe:0.70, employment:1700, blsGrowth:-5.8  },
+      { name:"Admin Assistants",          aioe:0.68, employment:2640, blsGrowth:-9.1  },
+      { name:"Billing Clerks",            aioe:0.67, employment:180,  blsGrowth:-12.0 },
+      { name:"File Clerks",               aioe:0.65, employment:100,  blsGrowth:-18.0 },
+      { name:"Bank Tellers",              aioe:0.69, employment:440,  blsGrowth:-14.0 },
+      { name:"Order Clerks",              aioe:0.62, employment:160,  blsGrowth:-16.0 },
+      { name:"Claims Adjusters",          aioe:0.66, employment:300,  blsGrowth:-4.0  },
+      { name:"Mail Sorters",              aioe:0.63, employment:90,   blsGrowth:-21.0 },
+    ]
+  },
+  {
+    name: "Finance & Legal",
+    accent: "#4a1a00",
+    jobs: [
+      { name:"Lawyers",                   aioe:0.73, employment:840,  blsGrowth:10.0 },
+      { name:"Paralegals",                aioe:0.71, employment:370,  blsGrowth: 4.0 },
+      { name:"Financial Analysts",        aioe:0.69, employment:340,  blsGrowth: 8.0 },
+      { name:"Insurance Underwriters",    aioe:0.72, employment:100,  blsGrowth:-4.0 },
+      { name:"Tax Preparers",             aioe:0.68, employment:75,   blsGrowth:-9.0 },
+      { name:"Accountants & Auditors",    aioe:0.67, employment:1540, blsGrowth: 4.0 },
+      { name:"Credit Analysts",           aioe:0.70, employment:80,   blsGrowth:-3.0 },
+      { name:"Loan Officers",             aioe:0.66, employment:330,  blsGrowth: 2.0 },
+      { name:"Financial Advisors",        aioe:0.58, employment:350,  blsGrowth:13.0 },
+    ]
+  },
+  {
+    name: "Technology",
+    accent: "#002a4a",
+    jobs: [
+      { name:"Software Developers",       aioe:0.74, employment:1840, blsGrowth:25.7 },
+      { name:"Data Scientists",           aioe:0.72, employment:180,  blsGrowth:35.0 },
+      { name:"Cybersecurity Analysts",    aioe:0.66, employment:180,  blsGrowth:32.7 },
+      { name:"Web Developers",            aioe:0.71, employment:210,  blsGrowth:16.0 },
+      { name:"QA Testers",                aioe:0.73, employment:230,  blsGrowth:21.0 },
+      { name:"Database Admins",           aioe:0.64, employment:160,  blsGrowth: 8.0 },
+      { name:"IT Support Specialists",    aioe:0.62, employment:900,  blsGrowth: 5.0 },
+      { name:"Network Architects",        aioe:0.60, employment:170,  blsGrowth: 5.0 },
+    ]
+  },
+  {
+    name: "Creative & Media",
+    accent: "#30003a",
+    jobs: [
+      { name:"Translators",               aioe:0.76, employment:78,   blsGrowth: 4.0 },
+      { name:"Technical Writers",         aioe:0.67, employment:60,   blsGrowth: 3.0 },
+      { name:"Journalists & Writers",     aioe:0.65, employment:460,  blsGrowth:-4.0 },
+      { name:"Market Research Analysts",  aioe:0.62, employment:800,  blsGrowth:13.0 },
+      { name:"Graphic Designers",         aioe:0.58, employment:280,  blsGrowth: 3.0 },
+      { name:"Photo / Video Editors",     aioe:0.61, employment:60,   blsGrowth:-4.0 },
+      { name:"Advertising Managers",      aioe:0.55, employment:120,  blsGrowth: 5.0 },
+    ]
+  },
+  {
+    name: "Sales & Customer Service",
+    accent: "#3a2000",
+    jobs: [
+      { name:"Telemarketers",             aioe:0.80, employment:200,  blsGrowth:-18.0 },
+      { name:"Customer Service Reps",     aioe:0.66, employment:3000, blsGrowth:-4.0  },
+      { name:"Travel Agents",             aioe:0.71, employment:68,   blsGrowth: 0.0  },
+      { name:"Sales Representatives",     aioe:0.52, employment:1600, blsGrowth: 4.0  },
+      { name:"Retail Salespersons",       aioe:0.48, employment:4500, blsGrowth: 1.0  },
+      { name:"Insurance Sales Agents",    aioe:0.53, employment:540,  blsGrowth: 6.0  },
+      { name:"Real Estate Agents",        aioe:0.49, employment:560,  blsGrowth: 3.0  },
+    ]
+  },
+  {
+    name: "Management & HR",
+    accent: "#001a30",
+    jobs: [
+      { name:"HR Specialists",            aioe:0.55, employment:880,  blsGrowth: 6.4 },
+      { name:"Training Specialists",      aioe:0.52, employment:360,  blsGrowth: 8.0 },
+      { name:"Management Analysts",       aioe:0.59, employment:1000, blsGrowth:11.0 },
+      { name:"Project Managers",          aioe:0.48, employment:600,  blsGrowth: 7.0 },
+      { name:"Marketing Managers",        aioe:0.54, employment:330,  blsGrowth: 6.0 },
+      { name:"Operations Managers",       aioe:0.46, employment:2800, blsGrowth: 3.0 },
+      { name:"Sales Managers",            aioe:0.50, employment:480,  blsGrowth: 4.0 },
+    ]
+  },
+  {
+    name: "Healthcare",
+    accent: "#002a12",
+    jobs: [
+      { name:"Medical Coders",            aioe:0.71, employment:440,  blsGrowth: 8.0 },
+      { name:"Radiologists",              aioe:0.62, employment:40,   blsGrowth: 1.0 },
+      { name:"Medical Diagnosticians",    aioe:0.55, employment:320,  blsGrowth: 7.0 },
+      { name:"Lab Technicians",           aioe:0.46, employment:380,  blsGrowth:11.0 },
+      { name:"Pharmacists",               aioe:0.42, employment:320,  blsGrowth: 0.0 },
+      { name:"Physicians & Surgeons",     aioe:0.44, employment:820,  blsGrowth: 3.0 },
+      { name:"Registered Nurses",         aioe:0.24, employment:3240, blsGrowth: 6.0 },
+      { name:"Home Health Aides",         aioe:0.18, employment:3700, blsGrowth:22.0 },
+    ]
+  },
+  {
+    name: "Production & Manufacturing",
+    accent: "#201800",
+    jobs: [
+      { name:"Quality Control Inspectors",aioe:0.52, employment:520,  blsGrowth:-4.0 },
+      { name:"CNC Machine Operators",     aioe:0.48, employment:500,  blsGrowth:-3.0 },
+      { name:"Industrial Engineers",      aioe:0.47, employment:330,  blsGrowth:10.0 },
+      { name:"Machinists",                aioe:0.41, employment:380,  blsGrowth:-1.0 },
+      { name:"Assemblers & Fabricators",  aioe:0.39, employment:1780, blsGrowth:-5.6 },
+      { name:"Welders",                   aioe:0.32, employment:440,  blsGrowth: 3.0 },
+    ]
+  },
+  {
+    name: "Transportation & Logistics",
+    accent: "#10103a",
+    jobs: [
+      { name:"Postal Workers",            aioe:0.56, employment:500,  blsGrowth:-7.6 },
+      { name:"Logistics Managers",        aioe:0.47, employment:540,  blsGrowth: 4.0 },
+      { name:"Warehouse Workers",         aioe:0.35, employment:1900, blsGrowth: 6.0 },
+      { name:"Truck Drivers",             aioe:0.30, employment:2060, blsGrowth: 4.0 },
+      { name:"Delivery Drivers",          aioe:0.29, employment:1200, blsGrowth:12.0 },
+      { name:"Air Traffic Controllers",   aioe:0.38, employment:25,   blsGrowth: 4.0 },
+    ]
+  },
+  {
+    name: "Resilient Services",
+    accent: "#082008",
+    jobs: [
+      { name:"Social Workers",            aioe:0.27, employment:750,  blsGrowth: 9.0 },
+      { name:"Elementary Teachers",       aioe:0.28, employment:1500, blsGrowth: 4.0 },
+      { name:"Food Prep & Cooks",         aioe:0.17, employment:4200, blsGrowth: 9.0 },
+      { name:"Physical Therapists",       aioe:0.21, employment:260,  blsGrowth:17.0 },
+      { name:"Electricians",              aioe:0.15, employment:760,  blsGrowth:11.0 },
+      { name:"Plumbers",                  aioe:0.14, employment:560,  blsGrowth:11.0 },
+      { name:"Janitors & Cleaners",       aioe:0.15, employment:2800, blsGrowth: 6.0 },
+      { name:"Firefighters",              aioe:0.13, employment:360,  blsGrowth: 4.0 },
+      { name:"Security Guards",           aioe:0.16, employment:1080, blsGrowth: 4.0 },
+      { name:"Childcare Workers",         aioe:0.14, employment:680,  blsGrowth: 2.0 },
+    ]
+  },
+];
+
+/* ════════════════════════════════════════════════════
+   ADOPTION CURVE — logistic S-curve
+   score(t) = aioe × sigmoid(t, params) × 100
+════════════════════════════════════════════════════ */
+const PARAMS = {
+  conservative: { L:0.55, k:0.35, t0:7.0 },
+  base:         { L:0.85, k:0.55, t0:5.5 },
+  aggressive:   { L:1.00, k:0.80, t0:3.5 },
+};
+
+function getScore(aioe, t, sc) {
+  const p = PARAMS[sc];
+  return Math.min(100, aioe * p.L / (1 + Math.exp(-p.k * (t - p.t0))) * 100);
+}
+
+/* ════════════════════════════════════════════════════
+   COLOR — strong contrast palette
+   deep green → olive/amber → burnt orange → crimson red
+════════════════════════════════════════════════════ */
+function scoreColor(s) {
+  // 5-stop gradient with strong steps
+  if (s < 15)  return `rgb(${lerp(10,25,s/15)}, ${lerp(65,95,s/15)}, ${lerp(35,48,s/15)})`;
+  if (s < 35)  return `rgb(${lerp(25,80,(s-15)/20)}, ${lerp(95,100,(s-15)/20)}, ${lerp(48,10,(s-15)/20)})`;
+  if (s < 55)  return `rgb(${lerp(80,180,(s-35)/20)}, ${lerp(100,90,(s-35)/20)}, ${lerp(10,0,(s-35)/20)})`;
+  if (s < 72)  return `rgb(${lerp(180,200,(s-55)/17)}, ${lerp(90,40,(s-55)/17)}, ${lerp(0,0,(s-55)/17)})`;
+  return        `rgb(${lerp(200,155,(s-72)/28)}, ${lerp(40,10,(s-72)/28)}, 0)`;
+}
+function lerp(a, b, t) { return Math.round(a + (b - a) * Math.min(1, Math.max(0, t))); }
+
+function riskLabel(s) {
+  if (s < 20)  return "Early";
+  if (s < 40)  return "Emerging";
+  if (s < 60)  return "Moderate";
+  if (s < 75)  return "High";
+  return "Critical";
+}
+
+/* ════════════════════════════════════════════════════
+   NARRATIVES
+════════════════════════════════════════════════════ */
+const NARRATIVES = [
+  "AI is emerging. GPT-3 launches. Narrow automation begins in data entry and basic document processing. Most workers unaffected.",
+  "Pandemic accelerates remote work. AI assistants enter legal and financial workflows. Clerical displacement risk begins rising.",
+  "ChatGPT era begins. Code generation, summarization, and translation face first-wave displacement pressure. White-collar work disrupted.",
+  "Generative AI goes mainstream. 40% of Fortune 500 companies testing AI for knowledge work. Office and admin roles under acute threat.",
+  "AI agents handle multi-step workflows. Customer service, claims processing, and tax preparation face critical displacement risk.",
+  "Autonomous AI enters knowledge work at scale. Legal drafting, financial modeling, and medical coding are highly disrupted.",
+  "Agentic AI replaces entire workflow layers. Administrative roles decline sharply. Workforce upskilling becomes a national priority.",
+  "Physical AI—robotics fused with LLMs—begins entering manufacturing, warehousing, and last-mile delivery.",
+  "AI saturation in the knowledge economy. Over 60% of administrative roles are transformed or eliminated.",
+  "Human + AI hybrid roles dominate the labor market. Resilient roles—caregiving, trades, teaching—surge in value.",
+  "New equilibrium emerges. 85M jobs transformed globally. High-empathy, physical, and creative roles command a scarcity premium.",
+];
+
+/* ════════════════════════════════════════════════════
+   BUILD DOM
+════════════════════════════════════════════════════ */
+const sectorsEl = document.getElementById("sectors");
+
+SECTORS.forEach(sector => {
+  const block = document.createElement("div");
+  block.className = "sector-block";
+
+  const title = document.createElement("div");
+  title.className = "sector-title";
+  title.innerHTML = `<span class="sector-dot" style="background:${sector.accent}"></span>${sector.name}`;
+  block.appendChild(title);
+
+  const grid = document.createElement("div");
+  grid.className = "jobs-grid";
+
+  sector.jobs.forEach(job => {
+    const card = document.createElement("div");
+    card.className = "job-block";
+    card.dataset.aioe   = job.aioe;
+    card.dataset.emp    = job.employment;
+    card.dataset.growth = job.blsGrowth;
+    card.dataset.sector = sector.name;
+    card.innerHTML = `
+      <div class="job-badge" data-badge></div>
+      <div class="job-name">${job.name}</div>
+      <span class="job-score" data-score>0</span>
+      <span class="job-score-label">AI Risk %</span>
+      <div class="job-bar"><div class="job-bar-fill" data-bar></div></div>
+    `;
+    card.addEventListener("mouseenter", e => showTT(e, job, sector.name));
+    card.addEventListener("mousemove",  e => moveTT(e));
+    card.addEventListener("mouseleave", hideTT);
+    grid.appendChild(card);
+  });
+
+  block.appendChild(grid);
+  sectorsEl.appendChild(block);
+});
+
+/* ════════════════════════════════════════════════════
+   RENDER — update every card for current t & scenario
+════════════════════════════════════════════════════ */
+function render(t, sc) {
+  const allJobs = SECTORS.flatMap(s =>
+    s.jobs.map(j => ({ job: j, s: getScore(j.aioe, t, sc) }))
+  );
+
+  // Update cards
+  document.querySelectorAll(".job-block").forEach(card => {
+    const aioe = parseFloat(card.dataset.aioe);
+    const s    = getScore(aioe, t, sc);
+    card.style.backgroundColor = scoreColor(s);
+    card.querySelector("[data-score]").textContent = s.toFixed(0);
+    card.querySelector("[data-bar]").style.width   = s + "%";
+    card.querySelector("[data-badge]").textContent = riskLabel(s);
+  });
+
+  // Sidebar
+  const avg  = allJobs.reduce((a,x) => a + x.s, 0) / allJobs.length;
+  const crit = allJobs.filter(x => x.s > 75).length;
+  const high = allJobs.filter(x => x.s > 60).length;
+  const safe = allJobs.filter(x => x.s < 20).length;
+  const mw   = allJobs.filter(x => x.s > 50)
+                       .reduce((a,x) => a + x.job.employment, 0) / 1000;
+
+  document.getElementById("sAvg").textContent  = avg.toFixed(1);
+  document.getElementById("sCrit").textContent = crit;
+  document.getElementById("sHigh").textContent = high;
+  document.getElementById("sSafe").textContent = safe;
+
+  // Header stats
+  document.getElementById("hstatAvg").textContent = avg.toFixed(0) + "%";
+  document.getElementById("hstatCrit").textContent = crit;
+  document.getElementById("hstatM").textContent    = mw.toFixed(0) + "M";
+
+  // Top 6 movers
+  const top6 = [...allJobs].sort((a,b) => b.s - a.s).slice(0, 6);
+  document.getElementById("moverList").innerHTML = top6.map((x,i) => `
+    <div class="mover">
+      <span class="mover-rank">${i+1}</span>
+      <span class="mover-name" title="${x.job.name}">${x.job.name}</span>
+      <span class="mover-score" style="color:${scoreColor(x.s)}">${x.s.toFixed(0)}</span>
+    </div>
+  `).join("");
+
+  // Narrative
+  const idx = Math.min(10, Math.max(0, Math.round(t)));
+  document.getElementById("navYear").textContent = 2020 + idx;
+  document.getElementById("navText").textContent = NARRATIVES[idx];
+
+  // Year badge
+  const yr = 2020 + t;
+  document.getElementById("yearNum").textContent = Math.floor(yr);
+  const phase = t < 2 ? "Early Stage" : t < 4.5 ? "Accelerating" : t < 7 ? "Peak Disruption" : "New Normal";
+  document.getElementById("yearPhase").textContent = phase;
+}
+
+/* ════════════════════════════════════════════════════
+   ANIMATION
+════════════════════════════════════════════════════ */
+let T       = 0;
+let playing = false;
+let speed   = 1;
+let sc      = "base";
+let lastTs  = null;
+let raf     = null;
+const SWEEP = 15000; // ms for full 0→10 at 1×
+
+function updateSlider() {
+  const pct = T / 10;
+  document.getElementById("tfill").style.width = (pct*100) + "%";
+  document.getElementById("tthumb").style.left = (pct*100) + "%";
+  document.getElementById("yearSlider").value  = Math.round(pct*1000);
+}
+
+function loop(ts) {
+  if (!playing) return;
+  if (!lastTs) lastTs = ts;
+  T += ((ts - lastTs) / SWEEP) * 10 * speed;
+  lastTs = ts;
+  if (T >= 10) { T = 10; playing = false; setIcon(); lastTs = null; }
+  render(T, sc);
+  updateSlider();
+  if (playing) raf = requestAnimationFrame(loop);
+}
+
+function play()  {
+  if (T >= 10) T = 0;
+  playing = true; lastTs = null; setIcon();
+  raf = requestAnimationFrame(loop);
+}
+function pause() {
+  playing = false; lastTs = null; setIcon();
+  if (raf) cancelAnimationFrame(raf);
+}
+function setIcon() {
+  document.getElementById("playIcon").innerHTML = playing
+    ? `<rect x="4" y="3" width="5" height="14" rx="1"/><rect x="11" y="3" width="5" height="14" rx="1"/>`
+    : `<polygon points="6,3 17,10 6,17"/>`;
+}
+
+/* ════════════════════════════════════════════════════
+   CONTROLS
+════════════════════════════════════════════════════ */
+document.getElementById("playBtn").addEventListener("click", () => playing ? pause() : play());
+document.getElementById("resetBtn").addEventListener("click", () => { pause(); T=0; render(0,sc); updateSlider(); });
+
+document.getElementById("yearSlider").addEventListener("input", function() {
+  pause(); T = (this.value/1000)*10; render(T,sc); updateSlider();
+});
+
+document.querySelectorAll("#speedTabs .tab").forEach(b => {
+  b.addEventListener("click", function() {
+    document.querySelectorAll("#speedTabs .tab").forEach(x => x.classList.remove("on"));
+    this.classList.add("on"); speed = parseFloat(this.dataset.s);
+  });
+});
+
+document.querySelectorAll("#sceneTabs .tab").forEach(b => {
+  b.addEventListener("click", function() {
+    document.querySelectorAll("#sceneTabs .tab").forEach(x => x.classList.remove("on"));
+    this.classList.add("on"); sc = this.dataset.sc; render(T,sc);
+  });
+});
+
+document.addEventListener("keydown", e => {
+  if (e.code==="Space")      { e.preventDefault(); playing ? pause() : play(); }
+  if (e.code==="ArrowRight") { pause(); T=Math.min(10,T+0.25); render(T,sc); updateSlider(); }
+  if (e.code==="ArrowLeft")  { pause(); T=Math.max(0,T-0.25);  render(T,sc); updateSlider(); }
+});
+
+/* ════════════════════════════════════════════════════
+   TOOLTIP
+════════════════════════════════════════════════════ */
+const ttEl = document.getElementById("tooltip");
+function showTT(e, job, sName) {
+  const s = getScore(job.aioe, T, sc);
+  document.getElementById("ttName").textContent   = job.name;
+  document.getElementById("ttSector").textContent = sName;
+  document.getElementById("ttScore").textContent  = s.toFixed(1) + "% / 100";
+  document.getElementById("ttAioe").textContent   = (job.aioe*100).toFixed(1);
+  document.getElementById("ttEmp").textContent    = job.employment.toLocaleString() + "K";
+  document.getElementById("ttGrowth").textContent = (job.blsGrowth>=0?"+":"")+job.blsGrowth+"%";
+  const f = document.getElementById("ttFill");
+  f.style.width = s+"%"; f.style.background = scoreColor(s);
+  ttEl.classList.add("show"); moveTT(e);
+}
+function moveTT(e) {
+  ttEl.style.left = Math.min(e.clientX+14, window.innerWidth-240)+"px";
+  ttEl.style.top  = Math.max(e.clientY-14, 8)+"px";
+}
+function hideTT() { ttEl.classList.remove("show"); }
+
+/* ════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════ */
+render(0, sc);
+updateSlider();
+setTimeout(play, 900);
+</script>
 </body>
 </html>
